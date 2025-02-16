@@ -96,19 +96,32 @@ Before creating your custom item, you need to **find an unused graphic ID** to a
 
 ---
 
+## 📌 Step 3.5: Check and Modify TileData (If Needed)
+
+1. **Open UO Fiddler**.
+2. Navigate to the **TileData tab**.
+3. **Locate Your Graphic ID**:
+   - If you're adding a **land tile** (ground, floors), check the **"Land Tiles"** section.
+   - If you're adding an **object** (items, furniture, decorations), check the **"Static"** section.
+   - Use the **search bar** to enter the **Art ID** (decimal, e.g., `6332`).
+4. **Review the Properties**:
+   - Some important flags include:
+     - **"Impassable"** → Prevents players from walking over it.
+     - **"Surface"** → Makes the object act like a table (items can be placed on it).
+     - **"Background"** → Allows objects to blend into the environment.
+5. **Modify as Needed** and click **Save**.
+
+---
+
 ## 📌 Step 4: Restart ClassicUO and Verify the New Art
 
 1. **Close ClassicUO Completely**.
 2. **Relaunch ClassicUO** and log in with a **GM account**.
 3. **Test the New Art**:
-   - Use the command:
-     ```
-     [tile ART_ID
-     ```
-     Replace `ART_ID` with the decimal ID noted earlier (e.g., `6332`).
-   - If the art doesn't display:
-     - Confirm the `art.mul` and `artidx.mul` files are correctly placed.
-     - Ensure `artLegacyMUL.uop` is renamed or removed.
+   ```
+   [tile ART_ID
+   ```
+   Replace `ART_ID` with the decimal ID noted earlier (e.g., `6332`).
 
 ---
 
@@ -118,45 +131,41 @@ Before creating your custom item, you need to **find an unused graphic ID** to a
    ```
    %SERVUO_PATH%\Scripts\Items\Custom\
    ```
-   Replace `%SERVUO_PATH%` with your actual ServUO installation path.
-
 2. **Create a New Script File**:
    - Name it `CustomItem.cs`.
 
 3. **Implement the Item Script**:
-   - Insert the following code, replacing `6332` with your specific Art ID:
+   ```csharp
+   using System;
+   using Server;
+   using Server.Items;
 
-     ```csharp
-     using System;
-     using Server;
-     using Server.Items;
+   public class CustomItem : Item
+   {
+       [Constructable]
+       public CustomItem() : base(6332) // Replace with your Art ID
+       {
+           Name = "My Custom Item";
+           Weight = 1.0;
+       }
 
-     public class CustomItem : Item
-     {
-         [Constructable]
-         public CustomItem() : base(6332) // Replace with your Art ID
-         {
-             Name = "My Custom Item";
-             Weight = 1.0;
-         }
+       public CustomItem(Serial serial) : base(serial)
+       {
+       }
 
-         public CustomItem(Serial serial) : base(serial)
-         {
-         }
+       public override void Serialize(GenericWriter writer)
+       {
+           base.Serialize(writer);
+           writer.Write(0);
+       }
 
-         public override void Serialize(GenericWriter writer)
-         {
-             base.Serialize(writer);
-             writer.Write(0);
-         }
-
-         public override void Deserialize(GenericReader reader)
-         {
-             base.Deserialize(reader);
-             int version = reader.ReadInt();
-         }
-     }
-     ```
+       public override void Deserialize(GenericReader reader)
+       {
+           base.Deserialize(reader);
+           int version = reader.ReadInt();
+       }
+   }
+   ```
 
 4. **Save the Script File**.
 
@@ -171,7 +180,6 @@ Before creating your custom item, you need to **find an unused graphic ID** to a
      ```
      _winrelease.bat
      ```
-   - Wait for the compilation to complete. Address any errors that arise.
 3. **Restart the ServUO Server**.
 
 ---
@@ -180,7 +188,37 @@ Before creating your custom item, you need to **find an unused graphic ID** to a
 
 1. **Log into the Game as a GM**.
 2. **Add the Custom Item**:
-   - Use the command:
+   ```
+   [add customitem
+   ```
+   - If this doesn't work, try:
      ```
-     [add customitem
+     [add 6332
      ```
+
+---
+
+## 📌 Troubleshooting
+
+| Issue | Solution |
+|--------|------------|
+| `[tile 6332]` does not show the item | ClassicUO may still be using `artLegacyMUL.uop`. Rename it and restart. |
+| `[add customitem]` fails | Check `CustomItem.cs` for errors. Recompile ServUO. |
+| Compilation fails (`CS0246: 'Item' not found`) | Ensure `using Server;` and `using Server.Items;` are at the top of the script. |
+| The item appears but is invisible | Check the image format. Must be **24-bit BMP**. |
+
+---
+
+## 🎉 Done!
+
+If everything worked, **your new custom item is now in the game!** 🚀  
+Modify the item script for additional features, like making it usable or equippable.
+
+---
+
+## ❓ Need Help?
+
+If you encounter issues, check:
+- **ServUO Console Logs** for errors.
+- **ClassicUO logs** (`ClassicUO/Data/files.json` might need deleting).
+- **UO Fiddler** to confirm Art ID placement.
